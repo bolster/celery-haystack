@@ -69,9 +69,10 @@ class CeleryHaystackSignalHandler(Task):
         try:
             instance = model_class._default_manager.get(pk=int(pk))
         except model_class.DoesNotExist:
-            logger.error("Couldn't load %s.%s.%s. Somehow it went missing?" %
-                         (model_class._meta.app_label.lower(),
-                          model_class._meta.object_name.lower(), pk))
+            # logger.error("Couldn't load %s.%s.%s. Somehow it went missing?" %
+            #              (model_class._meta.app_label.lower(),
+            #               model_class._meta.object_name.lower(), pk))
+            pass
         except model_class.MultipleObjectsReturned:
             logger.error("More than one object with pk %s. Oops?" % pk)
         return instance
@@ -139,7 +140,8 @@ class CeleryHaystackSignalHandler(Task):
                 if instance is None:
                     logger.debug("Failed updating '%s' (with %s)" %
                                  (identifier, current_index_name))
-                    raise ValueError("Couldn't load object '%s'" % identifier)
+                    # raise ValueError("Couldn't load object '%s'" % identifier)
+                    continue
 
                 # Call the appropriate handler of the current index and
                 # handle exception if neccessary
