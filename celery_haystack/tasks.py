@@ -1,6 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.db.models.loading import get_model
+from django.db.models.fields import AutoField, IntegerField
 
 from .conf import settings
 
@@ -66,8 +67,16 @@ class CeleryHaystackSignalHandler(Task):
         """
         logger = self.get_logger(**kwargs)
         instance = None
+
         try:
-            instance = model_class._default_manager.get(pk=int(pk))
+            if isinstance(model_class._meta.pk, (AutoField, IntegerField)):
+                # For many, but not all, models the primary key is expected to
+                # be an integer. There may be a way to use a field's to_python'
+                # method to handle this, but this method should work for all
+                # normal cases and should no longer cause things to break
+                # if a non-integer primary key is used.
+                pk = int(pk)
+            instance = model_class._default_manager.get(pk=pk)
         except model_class.DoesNotExist:
             # logger.error("Couldn't load %s.%s.%s. Somehow it went missing?" %
             #              (model_class._meta.app_label.lower(),
